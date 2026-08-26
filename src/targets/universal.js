@@ -5,6 +5,10 @@ const fs = require('fs');
 const f = require('../lib/files');
 
 const HANDOFF_FILE = 'last_handoff.md';
+// Anchored so it can't also ignore a same-named file elsewhere in the user's
+// tree. ensureIgnoreLine compares with leading slashes stripped, so an existing
+// unanchored entry from an older install still counts as present.
+const IGNORE_ENTRY = `/${HANDOFF_FILE}`;
 const BLOCK_ID = 'handoffkit';
 
 const AGENTS_BLOCK = `## Handoff
@@ -27,7 +31,7 @@ function install(ctx) {
   // 1. The handoff file itself. Seeded only when absent — an existing one is
   //    live state and overwriting it would defeat the entire tool.
   const handoffPath = path.join(root, HANDOFF_FILE);
-  const seed = f.read(path.join(templates, 'last_handoff.md'));
+  const seed = f.readRequired(path.join(templates, 'last_handoff.md'));
   report(
     HANDOFF_FILE,
     f.writeIfAbsent(handoffPath, seed, { dryRun }),
@@ -40,7 +44,7 @@ function install(ctx) {
       '.gitignore',
       f.ensureIgnoreLine(
         path.join(root, '.gitignore'),
-        HANDOFF_FILE,
+        IGNORE_ENTRY,
         'handoffkit (local working context, not shared state)',
         { dryRun }
       )

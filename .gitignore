@@ -4,4 +4,6 @@ node_modules/
 npm-debug.log*
 
 # handoffkit (local working context, not shared state)
-last_handoff.md
+# Anchored: an unanchored pattern also matches templates/last_handoff.md, which
+# ships with the package and must stay tracked.
+/last_handoff.md

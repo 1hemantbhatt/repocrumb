@@ -77,14 +77,39 @@ check('re-running does not duplicate the AGENTS.md block', () => {
   assert.strictEqual(opens, 1, `found ${opens} blocks`);
 });
 
+// Counts entries that ignore the handoff, anchored or not — the property under
+// test is "exactly one rule", not the spelling of it.
+const ignoreHits = (d) =>
+  read(d, '.gitignore')
+    .split(/\r?\n/)
+    .filter((l) => l.trim().replace(/^\/+/, '') === 'last_handoff.md').length;
+
 check('re-running does not duplicate the gitignore entry', () => {
   const d = tmp();
   fs.mkdirSync(path.join(d, '.git'));
   run(d);
   run(d);
-  const hits = read(d, '.gitignore')
-    .split(/\r?\n/)
-    .filter((l) => l.trim() === 'last_handoff.md').length;
+  const hits = ignoreHits(d);
+  assert.strictEqual(hits, 1, `found ${hits} entries`);
+});
+
+check('the gitignore entry is anchored to the repo root', () => {
+  const d = tmp();
+  fs.mkdirSync(path.join(d, '.git'));
+  run(d);
+  const lines = read(d, '.gitignore').split(/\r?\n/).map((l) => l.trim());
+  assert.ok(
+    lines.includes('/last_handoff.md'),
+    'entry should be /last_handoff.md so it cannot match nested files'
+  );
+});
+
+check('an unanchored entry from an older install is not duplicated', () => {
+  const d = tmp();
+  fs.mkdirSync(path.join(d, '.git'));
+  fs.writeFileSync(path.join(d, '.gitignore'), 'node_modules/\nlast_handoff.md\n');
+  run(d);
+  const hits = ignoreHits(d);
   assert.strictEqual(hits, 1, `found ${hits} entries`);
 });
 

@@ -30,10 +30,19 @@ mtime_of() {
 
 # Cooldown marker goes in the shared git dir. --git-common-dir resolves to the
 # real .git even from a linked worktree, where .git is a file and not writable
-# as a directory. Falls back to temp if we're somehow not in a repo.
+# as a directory.
+#
+# The no-git fallback must not be a fixed name in a world-writable directory:
+# on a shared machine anyone could pre-create it, and we both read it back and
+# write through it. Use a private per-user cache instead, keyed by repo path so
+# two projects don't share one cooldown.
 GITDIR=$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null || echo "")
 case "$GITDIR" in
-  '' ) MARKER="${TMPDIR:-/tmp}/handoffkit-block" ;;
+  '' )
+    CACHE="${XDG_CACHE_HOME:-${HOME:-$ROOT}/.cache}/handoffkit"
+    (umask 077 && mkdir -p "$CACHE") 2>/dev/null
+    MARKER="$CACHE/block-$(printf '%s' "$ROOT" | cksum | cut -d' ' -f1)"
+    ;;
   /*|[A-Za-z]:* ) MARKER="$GITDIR/handoffkit-block" ;;
   * ) MARKER="$ROOT/$GITDIR/handoffkit-block" ;;   # relative form
 esac
@@ -50,18 +59,32 @@ fi
 # compare the handoff against the files this turn actually touched. If nothing
 # in the working tree is newer than the handoff, there is nothing to record.
 # last_handoff.md is gitignored, so it never shows up in its own comparison.
+# -z gives NUL-separated records with paths left as-is; the default format
+# quotes anything unusual and writes renames as "old -> new", both of which
+# turn into paths that don't exist and get skipped. A rename emits two records,
+# new path then old, so the record after an R/C status is a source path we've
+# already accounted for.
+#
+# Only meaningful inside a repo: with no git, `status` prints nothing, which is
+# indistinguishable from "nothing changed" — so we'd exit here every time and
+# the wall-clock backstop below would never run.
 work_is_newer=0
-if [ "$mtime" -gt 0 ]; then
-  while IFS= read -r f; do
+if [ -n "$GITDIR" ] && [ "$mtime" -gt 0 ]; then
+  expect_rename_src=0
+  while IFS= read -r -d '' rec; do
+    if [ "$expect_rename_src" -eq 1 ]; then
+      expect_rename_src=0
+      continue
+    fi
+    case "$rec" in R*|C*) expect_rename_src=1 ;; esac
+    f=${rec#???}          # strip the two status columns and the space
     [ -n "$f" ] || continue
     [ -f "$ROOT/$f" ] || continue
     if [ "$(mtime_of "$ROOT/$f")" -gt "$mtime" ]; then
       work_is_newer=1
       break
     fi
-  done <<EOF
-$(git -C "$ROOT" status --porcelain --untracked-files=all 2>/dev/null | cut -c4-)
-EOF
+  done < <(git -C "$ROOT" status --porcelain -z --untracked-files=all 2>/dev/null)
   if [ "$work_is_newer" -eq 0 ]; then
     rm -f "$MARKER" 2>/dev/null
     exit 0
@@ -74,9 +97,13 @@ if [ $((now - mtime)) -lt "$FRESH" ] && [ "$work_is_newer" -eq 0 ]; then
   exit 0
 fi
 
+# Validate before the arithmetic below. Shell arithmetic re-evaluates whatever
+# a variable holds, so an unchecked file read here would be a code-execution
+# path if anything ever wrote something other than digits into the marker.
 last=0
 if [ -f "$MARKER" ]; then
   last=$(cat "$MARKER" 2>/dev/null || echo 0)
+  case "$last" in ''|*[!0-9]*) last=0 ;; esac
 fi
 
 # Already nudged recently. Stay quiet rather than trap the turn in a loop.

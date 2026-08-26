@@ -20,11 +20,11 @@ function install(ctx) {
 
   for (const skill of SKILLS) {
     const rel = `.claude/skills/${skill}/SKILL.md`;
-    const body = f.read(path.join(templates, 'claude', 'skills', skill, 'SKILL.md'));
+    const body = f.readRequired(path.join(templates, 'claude', 'skills', skill, 'SKILL.md'));
     report(rel, f.write(path.join(root, rel), body, { dryRun }));
   }
 
-  const hookBody = f.read(path.join(templates, 'claude', 'hooks', 'handoffkit-reminder.sh'));
+  const hookBody = f.readRequired(path.join(templates, 'claude', 'hooks', 'handoffkit-reminder.sh'));
   const hookAbs = path.join(root, HOOK_REL);
   const hookOutcome = f.write(hookAbs, hookBody, { dryRun });
   // chmod is a no-op on Windows and harmless elsewhere; the hook is invoked

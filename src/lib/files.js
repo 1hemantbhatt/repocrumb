@@ -14,6 +14,19 @@ const read = (p) => {
 const exists = (p) => fs.existsSync(p);
 
 /**
+ * Read a file that ships with the package. A missing one is a broken install,
+ * not a condition to route around: write() treats null content as "no change",
+ * so without this the installer would report success having written nothing.
+ */
+function readRequired(absPath) {
+  const content = read(absPath);
+  if (content === null) {
+    throw new Error(`missing package template: ${absPath}\nThis is a broken handoffkit install — try reinstalling.`);
+  }
+  return content;
+}
+
+/**
  * Write a file, creating parent directories. Honours dry-run by doing nothing.
  * Returns 'create' | 'update' | 'same' so the caller can report accurately
  * rather than claiming it wrote something it didn't.
@@ -114,6 +127,7 @@ function writeJson(absPath, value, { dryRun = false } = {}) {
 
 module.exports = {
   read,
+  readRequired,
   exists,
   write,
   writeIfAbsent,

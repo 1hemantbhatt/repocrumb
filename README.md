@@ -95,7 +95,7 @@ Two guards keep it from becoming a loop: a wall-clock backstop for repos without
 git, and a cooldown so it nudges at most once every ten minutes. Worst case it's
 mildly annoying; it can't trap you.
 
-The script is POSIX shell with no dependencies — no `jq` — and works on macOS,
+The script is bash with no dependencies — no `jq` — and works on macOS,
 Linux, and Windows via Git Bash. It resolves the git directory with
 `git rev-parse --git-common-dir`, so it behaves correctly inside linked
 worktrees.
