@@ -3,6 +3,9 @@ node_modules/
 .DS_Store
 npm-debug.log*
 
+# Per-developer agent settings. Never shared state.
+.claude/settings.local.json
+
 # repocrumb (local working context, not shared state)
 # Anchored: an unanchored pattern also matches templates/last_crumb.md, which
 # ships with the package and must stay tracked.
