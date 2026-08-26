@@ -10,7 +10,8 @@ const HELP = `
 ${log.bold('handoffkit')} — portable agent handoff
 
   Keeps a short last_handoff.md in your repo so any AI coding agent can pick up
-  where the last one stopped, across sessions, subscriptions and providers.
+  where the last one stopped, across sessions, tools and plan changes — or so
+  you can start a fresh conversation instead of letting a long one compact.
 
 ${log.bold('Usage')}
   npx handoffkit init [dir]      Install into <dir> (default: current directory)

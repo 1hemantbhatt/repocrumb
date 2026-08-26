@@ -1,7 +1,7 @@
 {
   "name": "handoffkit",
   "version": "0.1.0",
-  "description": "Portable agent handoff. Keeps a short last_handoff.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, subscriptions, and providers.",
+  "description": "Portable agent handoff. Keeps a short last_handoff.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, tools, and plan changes. Start a fresh conversation instead of letting a long one compact.",
   "keywords": [
     "ai",
     "agent",

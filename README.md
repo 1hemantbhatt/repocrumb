@@ -1,8 +1,8 @@
 # handoffkit
 
 Portable agent handoff. Keeps a short `last_handoff.md` in your repo so any AI
-coding agent can pick up where the last one stopped — across sessions,
-subscriptions, and providers.
+coding agent can pick up where the last one stopped — across sessions, tools,
+and plan changes.
 
 ```bash
 npx handoffkit init
@@ -12,12 +12,17 @@ npx handoffkit init
 
 You have a long working session with an AI agent. It knows the shape of the
 project, the three things you already tried, and why you rejected the obvious
-approach. Then the session ends, or your subscription changes, or you move to a
+approach. Then the session ends, or your plan changes, or you move to a
 different tool — and all of that is gone. You start the next conversation by
 re-explaining your own codebase.
 
 Agent memory features don't fix this, because they're per-vendor. The context
 lives inside whichever product you were using.
+
+There's a second version of this that happens without you switching anything. A
+long conversation fills its context window and gets compacted — the summary
+keeps the shape of the work and quietly drops the specifics. Nothing ended,
+nothing changed hands, and the agent still knows less than it did an hour ago.
 
 ## The approach
 
@@ -37,6 +42,20 @@ Three properties matter:
   wins. Merging concurrent state is a distributed-systems problem, and this is a
   text file.
 - **It's gitignored.** This is your working context, not shared team state.
+
+## Starting fresh instead of compacting
+
+This is the everyday use, and it doesn't involve switching anything.
+
+When a conversation gets long, you don't have to ride it down into compaction.
+Let the handoff save, close the session, open a new one, and run
+`/handoffkit-load`. You get a full context window and a deliberate summary of
+where the work stands — written while the agent still had the details — instead
+of an automatic summary of everything that ever happened in the thread.
+
+The difference is what gets kept. Compaction decides for you, under pressure,
+with no idea which of the three approaches you rejected still matters. The
+handoff was written on purpose, and you can open it and read it.
 
 ## What gets installed
 
@@ -108,6 +127,18 @@ readable by anything — those are written regardless of target.
 
 If you want Cursor or Codex support, open an issue or a PR adding a target.
 
+## Privacy
+
+Nothing is sent anywhere. There is no telemetry, no analytics, and no network
+access of any kind — the installer writes files and exits, and the hook is a
+shell script that reads timestamps. `last_handoff.md` stays on your disk, in
+your repo, gitignored by default.
+
+The save skill is instructed never to write secrets into it: no keys, tokens,
+`.env` contents, or connection strings. It names things rather than quoting
+values. It's still a plain file describing your project, so treat it the way
+you'd treat your own notes.
+
 ## Requirements
 
 Node 18+. Git optional but recommended — without it the handoff file and agent
@@ -122,3 +153,10 @@ node test/smoke.js     # no framework, exit 0 means pass
 ## License
 
 MIT
+
+---
+
+Not affiliated with, endorsed by, or sponsored by Anthropic, Anysphere, or
+OpenAI. Claude and Claude Code are trademarks of Anthropic; Cursor is a
+trademark of Anysphere; Codex is a trademark of OpenAI. Product names are used
+here only to describe what this tool works with.

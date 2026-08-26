@@ -1,6 +1,6 @@
 ---
 name: handoffkit-load
-description: Load the handoff at the start of a new conversation or after switching agent providers. Reads last_handoff.md from the repo root, verifies it against the actual repo state, and reports where things stand before any work begins. Use when the user runs /handoffkit-load, says "resume", "pick up where we left off", or "load the handoff".
+description: Load the handoff at the start of a new conversation, after switching agent providers, or when the user has deliberately started fresh rather than let a long session compact. Reads last_handoff.md from the repo root, verifies it against the actual repo state, and reports where things stand before any work begins. Use when the user runs /handoffkit-load, says "resume", "pick up where we left off", "load the handoff", or "continuing from the last session".
 ---
 
 # handoffkit — load

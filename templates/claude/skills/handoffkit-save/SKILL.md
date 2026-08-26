@@ -1,6 +1,6 @@
 ---
 name: handoffkit-save
-description: Overwrite last_handoff.md at the repo root with a short summary of the current state and the conversation that just happened, so any agent on any provider can pick the work up cold. Invoke at the end of every turn, after the work is done and reported. Also use when the user says "save the handoff", "update the handoff", or is about to switch agents, subscriptions, or providers.
+description: Overwrite last_handoff.md at the repo root with a short summary of the current state and the conversation that just happened, so any agent on any provider can pick the work up cold. Invoke at the end of every turn, after the work is done and reported. Also use when the user says "save the handoff", "update the handoff", is about to switch agents, subscriptions, or providers, or is about to end this conversation and start a fresh one rather than let it compact.
 ---
 
 # handoffkit — save
