@@ -7,7 +7,7 @@ const log = require('../src/lib/log');
 const pkg = require('../package.json');
 
 const HELP = `
-${log.bold('RepoCrumb')} — leaves a breadcrumb in the repo for the next agent
+${log.bold('repocrumb')} — leaves a breadcrumb in the repo for the next agent
 
   Keeps a short last_crumb.md in your repo so any AI coding agent can pick up
   where the last one stopped, across sessions, tools and plan changes — or so

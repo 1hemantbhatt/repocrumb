@@ -1,9 +1,9 @@
-![RepoCrumb — Agent A works in the current session and auto-saves a short
+![repocrumb — Agent A works in the current session and auto-saves a short
 last_crumb.md into your repo each turn; Agent B opens a new session, runs
 /repocrumb-load, and continues with the progress, decisions, and next steps
 intact.](docs/repo_crumb.png)
 
-# RepoCrumb
+# repocrumb
 
 Leaves a breadcrumb in the repo for the next agent. Keeps a short
 `last_crumb.md` in your repo so any AI coding agent can pick up where the last

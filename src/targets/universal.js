@@ -11,7 +11,7 @@ const CRUMB_FILE = 'last_crumb.md';
 const IGNORE_ENTRY = `/${CRUMB_FILE}`;
 const BLOCK_ID = 'repocrumb';
 
-const AGENTS_BLOCK = `## RepoCrumb
+const AGENTS_BLOCK = `## repocrumb
 
 After finishing each turn, use the \`repocrumb-save\` skill to overwrite
 \`${CRUMB_FILE}\` at the repo root — a short snapshot of current state and the
