@@ -3,10 +3,10 @@
 const path = require('path');
 const f = require('../lib/files');
 
-const HOOK_REL = '.claude/hooks/handoffkit-reminder.sh';
+const HOOK_REL = '.claude/hooks/repocrumb-reminder.sh';
 const HOOK_COMMAND = `bash "$CLAUDE_PROJECT_DIR/${HOOK_REL}"`;
 
-const SKILLS = ['handoffkit-save', 'handoffkit-load'];
+const SKILLS = ['repocrumb-save', 'repocrumb-load'];
 
 /**
  * Claude Code integration: the two skills, the Stop hook, and the settings
@@ -24,7 +24,7 @@ function install(ctx) {
     report(rel, f.write(path.join(root, rel), body, { dryRun }));
   }
 
-  const hookBody = f.readRequired(path.join(templates, 'claude', 'hooks', 'handoffkit-reminder.sh'));
+  const hookBody = f.readRequired(path.join(templates, 'claude', 'hooks', 'repocrumb-reminder.sh'));
   const hookAbs = path.join(root, HOOK_REL);
   const hookOutcome = f.write(hookAbs, hookBody, { dryRun });
   // chmod is a no-op on Windows and harmless elsewhere; the hook is invoked
@@ -57,7 +57,7 @@ function mergeSettings(root, dryRun) {
   const alreadyWired = settings.hooks.Stop.some(
     (entry) =>
       Array.isArray(entry && entry.hooks) &&
-      entry.hooks.some((h) => h && typeof h.command === 'string' && h.command.includes('handoffkit-reminder'))
+      entry.hooks.some((h) => h && typeof h.command === 'string' && h.command.includes('repocrumb-reminder'))
   );
   if (alreadyWired) return 'same';
 
@@ -68,7 +68,7 @@ function mergeSettings(root, dryRun) {
         command: HOOK_COMMAND,
         shell: 'bash',
         timeout: 10,
-        statusMessage: 'Checking handoff...',
+        statusMessage: 'Checking crumb...',
       },
     ],
   });

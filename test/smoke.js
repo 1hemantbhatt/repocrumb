@@ -2,7 +2,7 @@
 
 /**
  * Smoke test: run the installer against throwaway directories and assert the
- * things that would actually hurt if they broke — clobbering a live handoff,
+ * things that would actually hurt if they broke — clobbering a live crumb,
  * duplicating blocks on re-run, or trashing an existing settings.json.
  *
  * No framework. `node test/smoke.js`, exit 0 means pass.
@@ -14,7 +14,7 @@ const path = require('path');
 const assert = require('assert');
 const { execFileSync } = require('child_process');
 
-const CLI = path.join(__dirname, '..', 'bin', 'handoffkit.js');
+const CLI = path.join(__dirname, '..', 'bin', 'repocrumb.js');
 
 let passed = 0;
 const check = (name, fn) => {
@@ -29,7 +29,7 @@ const check = (name, fn) => {
   }
 };
 
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'handoffkit-test-'));
+const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'repocrumb-test-'));
 const run = (cwd, args = []) =>
   execFileSync(process.execPath, [CLI, 'init', cwd, ...args], {
     encoding: 'utf8',
@@ -38,32 +38,32 @@ const run = (cwd, args = []) =>
 const read = (d, p) => fs.readFileSync(path.join(d, p), 'utf8');
 const has = (d, p) => fs.existsSync(path.join(d, p));
 
-console.log('\nhandoffkit smoke test\n');
+console.log('\nrepocrumb smoke test\n');
 
 check('fresh install writes every expected file', () => {
   const d = tmp();
   fs.mkdirSync(path.join(d, '.git'));
   run(d);
   for (const p of [
-    'last_handoff.md',
+    'last_crumb.md',
     '.gitignore',
     'AGENTS.md',
-    '.claude/skills/handoffkit-save/SKILL.md',
-    '.claude/skills/handoffkit-load/SKILL.md',
-    '.claude/hooks/handoffkit-reminder.sh',
+    '.claude/skills/repocrumb-save/SKILL.md',
+    '.claude/skills/repocrumb-load/SKILL.md',
+    '.claude/hooks/repocrumb-reminder.sh',
     '.claude/settings.json',
   ]) {
     assert.ok(has(d, p), `missing ${p}`);
   }
 });
 
-check('an existing last_handoff.md is never overwritten', () => {
+check('an existing last_crumb.md is never overwritten', () => {
   const d = tmp();
   fs.mkdirSync(path.join(d, '.git'));
-  const live = '# Handoff\n\nreal work in progress, do not lose me\n';
-  fs.writeFileSync(path.join(d, 'last_handoff.md'), live);
+  const live = '# Crumb\n\nreal work in progress, do not lose me\n';
+  fs.writeFileSync(path.join(d, 'last_crumb.md'), live);
   run(d);
-  assert.strictEqual(read(d, 'last_handoff.md'), live);
+  assert.strictEqual(read(d, 'last_crumb.md'), live);
 });
 
 check('re-running does not duplicate the AGENTS.md block', () => {
@@ -73,16 +73,16 @@ check('re-running does not duplicate the AGENTS.md block', () => {
   run(d);
   run(d);
   const agents = read(d, 'AGENTS.md');
-  const opens = agents.split('<!-- BEGIN handoffkit -->').length - 1;
+  const opens = agents.split('<!-- BEGIN repocrumb -->').length - 1;
   assert.strictEqual(opens, 1, `found ${opens} blocks`);
 });
 
-// Counts entries that ignore the handoff, anchored or not — the property under
+// Counts entries that ignore the crumb, anchored or not — the property under
 // test is "exactly one rule", not the spelling of it.
 const ignoreHits = (d) =>
   read(d, '.gitignore')
     .split(/\r?\n/)
-    .filter((l) => l.trim().replace(/^\/+/, '') === 'last_handoff.md').length;
+    .filter((l) => l.trim().replace(/^\/+/, '') === 'last_crumb.md').length;
 
 check('re-running does not duplicate the gitignore entry', () => {
   const d = tmp();
@@ -99,15 +99,15 @@ check('the gitignore entry is anchored to the repo root', () => {
   run(d);
   const lines = read(d, '.gitignore').split(/\r?\n/).map((l) => l.trim());
   assert.ok(
-    lines.includes('/last_handoff.md'),
-    'entry should be /last_handoff.md so it cannot match nested files'
+    lines.includes('/last_crumb.md'),
+    'entry should be /last_crumb.md so it cannot match nested files'
   );
 });
 
-check('an unanchored entry from an older install is not duplicated', () => {
+check('an unanchored entry is not duplicated', () => {
   const d = tmp();
   fs.mkdirSync(path.join(d, '.git'));
-  fs.writeFileSync(path.join(d, '.gitignore'), 'node_modules/\nlast_handoff.md\n');
+  fs.writeFileSync(path.join(d, '.gitignore'), 'node_modules/\nlast_crumb.md\n');
   run(d);
   const hits = ignoreHits(d);
   assert.strictEqual(hits, 1, `found ${hits} entries`);
@@ -120,7 +120,7 @@ check('existing AGENTS.md content is preserved', () => {
   run(d);
   const agents = read(d, 'AGENTS.md');
   assert.ok(agents.includes('Do not touch me.'), 'original content lost');
-  assert.ok(agents.includes('handoffkit-save'), 'block not added');
+  assert.ok(agents.includes('repocrumb-save'), 'block not added');
 });
 
 check('existing settings.json keys and hooks survive the merge', () => {
@@ -155,7 +155,7 @@ check('the Stop hook is not added twice on re-run', () => {
   run(d);
   const s = JSON.parse(read(d, '.claude/settings.json'));
   const ours = s.hooks.Stop.filter((e) =>
-    e.hooks.some((h) => h.command.includes('handoffkit-reminder'))
+    e.hooks.some((h) => h.command.includes('repocrumb-reminder'))
   );
   assert.strictEqual(ours.length, 1, `found ${ours.length}`);
 });
@@ -174,14 +174,14 @@ check('--dry-run writes nothing', () => {
   const d = tmp();
   fs.mkdirSync(path.join(d, '.git'));
   run(d, ['--dry-run']);
-  assert.ok(!has(d, 'last_handoff.md'), 'dry run created files');
+  assert.ok(!has(d, 'last_crumb.md'), 'dry run created files');
   assert.ok(!has(d, '.claude'), 'dry run created .claude');
 });
 
 check('a non-git directory still gets the agent files', () => {
   const d = tmp();
   run(d);
-  assert.ok(has(d, 'last_handoff.md'), 'handoff missing');
+  assert.ok(has(d, 'last_crumb.md'), 'crumb missing');
   assert.ok(!has(d, '.gitignore'), 'gitignore written outside a repo');
 });
 

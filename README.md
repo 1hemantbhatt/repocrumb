@@ -1,15 +1,15 @@
-![handoffkit — Agent A auto-saves a short last_handoff.md into your repo each
+![RepoCrumb — Agent A auto-saves a short last_crumb.md into your repo each
 turn; Agent B loads it in a new session and continues with the progress,
 decisions, and next steps intact.](docs/banner.png)
 
-# handoffkit
+# RepoCrumb
 
-Portable agent handoff. Keeps a short `last_handoff.md` in your repo so any AI
-coding agent can pick up where the last one stopped — across sessions, tools,
-and plan changes.
+Leaves a breadcrumb in the repo for the next agent. Keeps a short
+`last_crumb.md` in your repo so any AI coding agent can pick up where the last
+one stopped — across sessions, tools, and plan changes.
 
 ```bash
-npx handoffkit init
+npx repocrumb init
 ```
 
 ## The problem
@@ -30,7 +30,7 @@ nothing changed hands, and the agent still knows less than it did an hour ago.
 
 ## The approach
 
-One plain markdown file at the root of your repo, `last_handoff.md`, holding a
+One plain markdown file at the root of your repo, `last_crumb.md`, holding a
 short snapshot of where the work actually stands. Your agent overwrites it at
 the end of every turn. The next agent — same tool or not — reads it and knows
 what's going on.
@@ -52,41 +52,41 @@ Three properties matter:
 This is the everyday use, and it doesn't involve switching anything.
 
 When a conversation gets long, you don't have to ride it down into compaction.
-Let the handoff save, close the session, open a new one, and run
-`/handoffkit-load`. You get a full context window and a deliberate summary of
+Let the crumb save, close the session, open a new one, and run
+`/repocrumb-load`. You get a full context window and a deliberate summary of
 where the work stands — written while the agent still had the details — instead
 of an automatic summary of everything that ever happened in the thread.
 
 The difference is what gets kept. Compaction decides for you, under pressure,
 with no idea which of the three approaches you rejected still matters. The
-handoff was written on purpose, and you can open it and read it.
+crumb was written on purpose, and you can open it and read it.
 
 ## What gets installed
 
 ```
-last_handoff.md                          the handoff (never overwritten if it exists)
-.gitignore                               adds last_handoff.md
-AGENTS.md                                a marked block pointing agents at the skills
-.claude/skills/handoffkit-save/          writes the handoff
-.claude/skills/handoffkit-load/          reads and verifies it
-.claude/hooks/handoffkit-reminder.sh     nudges the agent when the file goes stale
-.claude/settings.json                    merged, never replaced
+last_crumb.md                         the crumb (never overwritten if it exists)
+.gitignore                            adds last_crumb.md
+AGENTS.md                             a marked block pointing agents at the skills
+.claude/skills/repocrumb-save/        writes the crumb
+.claude/skills/repocrumb-load/        reads and verifies it
+.claude/hooks/repocrumb-reminder.sh   nudges the agent when the file goes stale
+.claude/settings.json                 merged, never replaced
 ```
 
 Re-running is safe. Everything is idempotent — the `AGENTS.md` block is
 marker-delimited and replaced in place, the gitignore entry is added once, and
 the Stop hook is only wired up if it isn't already.
 
-**Your existing `last_handoff.md` is never touched.** It's live state, and
+**Your existing `last_crumb.md` is never touched.** It's live state, and
 clobbering it would defeat the point of the tool.
 
 ## Usage
 
 ```bash
-npx handoffkit init            # install into the current directory
-npx handoffkit init ./myapp    # install somewhere else
-npx handoffkit init --dry-run  # show what would change, write nothing
-npx handoffkit --help
+npx repocrumb init            # install into the current directory
+npx repocrumb init ./myapp    # install somewhere else
+npx repocrumb init --dry-run  # show what would change, write nothing
+npx repocrumb --help
 ```
 
 After installing, restart your agent — or open `/hooks` once in Claude Code — so
@@ -95,12 +95,12 @@ it picks up the new settings.
 Then, at the start of any new session:
 
 ```
-/handoffkit-load
+/repocrumb-load
 ```
 
-That reads the handoff **and checks it against reality**: whether HEAD has moved,
+That reads the crumb **and checks it against reality**: whether HEAD has moved,
 whether the files it names still exist, whether someone worked outside the loop.
-Handoff files go stale, and a stale one you trust is worse than none.
+Crumbs go stale, and a stale one you trust is worse than none.
 
 From there the agent saves automatically at the end of each turn.
 
@@ -111,7 +111,7 @@ a soft instruction gets skipped.
 
 It doesn't ask "is the file old?" — a single turn can run for ten minutes and
 that proves nothing. It asks whether **anything in `git status` is newer than the
-handoff.** If no file has changed since the last save, there's nothing to
+crumb.** If no file has changed since the last save, there's nothing to
 record, whatever the clock says.
 
 Two guards keep it from becoming a loop: a wall-clock backstop for repos without
@@ -126,7 +126,7 @@ worktrees.
 ## Agent support
 
 Claude Code today. The installer is structured so other agents are drop-in
-adapters (`src/targets/`), and `last_handoff.md` plus `AGENTS.md` are already
+adapters (`src/targets/`), and `last_crumb.md` plus `AGENTS.md` are already
 readable by anything — those are written regardless of target.
 
 If you want Cursor or Codex support, open an issue or a PR adding a target.
@@ -135,7 +135,7 @@ If you want Cursor or Codex support, open an issue or a PR adding a target.
 
 Nothing is sent anywhere. There is no telemetry, no analytics, and no network
 access of any kind — the installer writes files and exits, and the hook is a
-shell script that reads timestamps. `last_handoff.md` stays on your disk, in
+shell script that reads timestamps. `last_crumb.md` stays on your disk, in
 your repo, gitignored by default.
 
 The save skill is instructed never to write secrets into it: no keys, tokens,
@@ -145,7 +145,7 @@ you'd treat your own notes.
 
 ## Requirements
 
-Node 18+. Git optional but recommended — without it the handoff file and agent
+Node 18+. Git optional but recommended — without it the crumb file and agent
 files are still written, only the `.gitignore` step is skipped.
 
 ## Development

@@ -1,14 +1,14 @@
 ---
-name: handoffkit-save
-description: Overwrite last_handoff.md at the repo root with a short summary of the current state and the conversation that just happened, so any agent on any provider can pick the work up cold. Invoke at the end of every turn, after the work is done and reported. Also use when the user says "save the handoff", "update the handoff", is about to switch agents, subscriptions, or providers, or is about to end this conversation and start a fresh one rather than let it compact.
+name: repocrumb-save
+description: Overwrite last_crumb.md at the repo root with a short summary of the current state and the conversation that just happened, so any agent on any provider can pick the work up cold. Invoke at the end of every turn, after the work is done and reported. Also use when the user says "save the crumb", "update the crumb", is about to switch agents, subscriptions, or providers, or is about to end this conversation and start a fresh one rather than let it compact.
 ---
 
-# handoffkit — save
+# repocrumb — save
 
 Record the state of this project for a **different agent, on a different
 provider, with zero context**. Not for yourself. Not for the user.
 
-The file is `last_handoff.md` at the repository root. It is gitignored.
+The file is `last_crumb.md` at the repository root. It is gitignored.
 
 ## The two rules that matter most
 
@@ -35,7 +35,7 @@ appending to it, and you are not protecting it.
 
 ## Procedure
 
-1. Read the existing `last_handoff.md`, if there is one. Carry forward what is
+1. Read the existing `last_crumb.md`, if there is one. Carry forward what is
    still true and still relevant. Drop the rest.
 2. Get the stamp facts: `git rev-parse --short HEAD`,
    `git branch --show-current`, current local time.
@@ -56,7 +56,7 @@ appending to it, and you are not protecting it.
   that stopped being interesting, finished work nobody will revisit — cut them.
   A save that only adds is a bug.
 - **Be honest about failure.** Tests failing, a step skipped, something half
-  done — that goes in. A handoff that hides a broken state is worse than none.
+  done — that goes in. A crumb that hides a broken state is worse than none.
 - **Fresh stamps only.** The HEAD and timestamp are how the next agent judges
   staleness. Never carry an old one forward.
 - **Stay provider-neutral.** Do not reference Claude skills, slash commands, or
@@ -67,7 +67,7 @@ appending to it, and you are not protecting it.
 Keep these headings exactly — the loader keys off them.
 
 ```markdown
-# Handoff
+# Crumb
 
 Updated: <ISO-8601 local> | Agent: <model/provider id> | Branch: <branch> | HEAD: <short sha>
 

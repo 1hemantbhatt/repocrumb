@@ -35,7 +35,7 @@ function install({ root, dryRun = false, targets = ['claude'] } = {}) {
   const ctx = { root, dryRun, report, templates: TEMPLATES };
 
   log.info('');
-  log.info(`${log.bold('handoffkit')} ${dryRun ? log.yellow('(dry run — nothing written)') : ''}`);
+  log.info(`${log.bold('repocrumb')} ${dryRun ? log.yellow('(dry run — nothing written)') : ''}`);
   log.info(log.dim(`  ${root}`));
   log.info('');
 
@@ -58,7 +58,7 @@ function install({ root, dryRun = false, targets = ['claude'] } = {}) {
     log.info(`  ${log.green('Done.')} ${counts.create} created, ${counts.update} updated.`);
     log.info('');
     log.info(`  Restart your agent (or open ${log.cyan('/hooks')} once in Claude Code) so it`);
-    log.info('  picks up the new settings, then run ' + log.cyan('/handoffkit-load') + ' to start a session.');
+    log.info('  picks up the new settings, then run ' + log.cyan('/repocrumb-load') + ' to start a session.');
   } else {
     log.info('  Already up to date.');
   }

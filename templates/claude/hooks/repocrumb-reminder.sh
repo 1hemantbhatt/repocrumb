@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# handoffkit Stop hook: nudge the agent to save last_handoff.md before the turn
+# repocrumb Stop hook: nudge the agent to save last_crumb.md before the turn
 # ends.
 #
 # Blocks the stop (which sends the model back for one more step) only when the
-# handoff file looks stale. Two guards keep this from becoming a loop:
+# crumb file looks stale. Two guards keep this from becoming a loop:
 #   - a freshness window: if the file was touched during this turn, we're done
 #   - a cooldown marker: we block at most once per COOLDOWN seconds
 # Deliberately no jq dependency; stdin is drained and ignored.
 
 set -u
 
-FRESH=900      # backstop: handoff counts as current if touched this recently
+FRESH=900      # backstop: crumb counts as current if touched this recently
 COOLDOWN=600   # never block again within this many seconds of the last block
 
 cat >/dev/null 2>&1 || true   # drain hook stdin
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-HANDOFF="$ROOT/last_handoff.md"
+CRUMB="$ROOT/last_crumb.md"
 
 # Modification time in epoch seconds. GNU stat (Linux, Git Bash) and BSD stat
 # (macOS) spell this differently, so try both and validate we got digits.
@@ -39,26 +39,26 @@ mtime_of() {
 GITDIR=$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null || echo "")
 case "$GITDIR" in
   '' )
-    CACHE="${XDG_CACHE_HOME:-${HOME:-$ROOT}/.cache}/handoffkit"
+    CACHE="${XDG_CACHE_HOME:-${HOME:-$ROOT}/.cache}/repocrumb"
     (umask 077 && mkdir -p "$CACHE") 2>/dev/null
     MARKER="$CACHE/block-$(printf '%s' "$ROOT" | cksum | cut -d' ' -f1)"
     ;;
-  /*|[A-Za-z]:* ) MARKER="$GITDIR/handoffkit-block" ;;
-  * ) MARKER="$ROOT/$GITDIR/handoffkit-block" ;;   # relative form
+  /*|[A-Za-z]:* ) MARKER="$GITDIR/repocrumb-block" ;;
+  * ) MARKER="$ROOT/$GITDIR/repocrumb-block" ;;   # relative form
 esac
 
 now=$(date +%s)
 
 mtime=0
-if [ -f "$HANDOFF" ]; then
-  mtime=$(mtime_of "$HANDOFF")
+if [ -f "$CRUMB" ]; then
+  mtime=$(mtime_of "$CRUMB")
 fi
 
 # Primary signal: did any work land AFTER the last save? Wall-clock age is a
 # poor proxy — a single turn can easily run longer than any threshold — so
-# compare the handoff against the files this turn actually touched. If nothing
-# in the working tree is newer than the handoff, there is nothing to record.
-# last_handoff.md is gitignored, so it never shows up in its own comparison.
+# compare the crumb against the files this turn actually touched. If nothing
+# in the working tree is newer than the crumb, there is nothing to record.
+# last_crumb.md is gitignored, so it never shows up in its own comparison.
 # -z gives NUL-separated records with paths left as-is; the default format
 # quotes anything unusual and writes renames as "old -> new", both of which
 # turn into paths that don't exist and get skipped. A rename emits two records,
@@ -114,7 +114,7 @@ fi
 echo "$now" > "$MARKER" 2>/dev/null
 
 cat <<'JSON'
-{"decision":"block","reason":"last_handoff.md is stale. Use the handoffkit-save skill now to overwrite it with the current state and this conversation, then finish. Keep it under 100 lines. If this turn changed nothing worth recording, refresh the stamp and the Last conversation block only, then stop.","suppressOutput":true}
+{"decision":"block","reason":"last_crumb.md is stale. Use the repocrumb-save skill now to overwrite it with the current state and this conversation, then finish. Keep it under 100 lines. If this turn changed nothing worth recording, refresh the stamp and the Last conversation block only, then stop.","suppressOutput":true}
 JSON
 
 exit 0

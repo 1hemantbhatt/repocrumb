@@ -1,4 +1,4 @@
-# Handoff
+# Crumb
 
 Updated: never | Agent: none | Branch: — | HEAD: —
 
@@ -6,7 +6,7 @@ Updated: never | Agent: none | Branch: — | HEAD: —
 > Overwritten every save. Reflects one conversation only.
 >
 > This is the seed file. No conversation has been recorded yet — the first
-> `handoffkit-save` replaces everything below.
+> `repocrumb-save` replaces everything below.
 
 ## Project
 
@@ -41,5 +41,5 @@ _Not yet recorded._
 ## Last conversation
 
 **Asked:** —
-**Did:** handoffkit was installed. This file is the seed.
+**Did:** repocrumb was installed. This file is the seed.
 **Result:** Waiting for the first real conversation.

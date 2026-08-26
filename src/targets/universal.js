@@ -4,21 +4,21 @@ const path = require('path');
 const fs = require('fs');
 const f = require('../lib/files');
 
-const HANDOFF_FILE = 'last_handoff.md';
+const CRUMB_FILE = 'last_crumb.md';
 // Anchored so it can't also ignore a same-named file elsewhere in the user's
 // tree. ensureIgnoreLine compares with leading slashes stripped, so an existing
 // unanchored entry from an older install still counts as present.
-const IGNORE_ENTRY = `/${HANDOFF_FILE}`;
-const BLOCK_ID = 'handoffkit';
+const IGNORE_ENTRY = `/${CRUMB_FILE}`;
+const BLOCK_ID = 'repocrumb';
 
-const AGENTS_BLOCK = `## Handoff
+const AGENTS_BLOCK = `## RepoCrumb
 
-After finishing each turn, use the \`handoffkit-save\` skill to overwrite
-\`${HANDOFF_FILE}\` at the repo root — a short snapshot of current state and the
+After finishing each turn, use the \`repocrumb-save\` skill to overwrite
+\`${CRUMB_FILE}\` at the repo root — a short snapshot of current state and the
 conversation that just happened, under 100 lines. It covers the last
 conversation only and is rewritten, never appended to.
 
-To pick up a session, run \`/handoffkit-load\`.`;
+To pick up a session, run \`/repocrumb-load\`.`;
 
 /**
  * Files every project gets, whatever agent it uses. These are the reason this
@@ -28,14 +28,14 @@ To pick up a session, run \`/handoffkit-load\`.`;
 function install(ctx) {
   const { root, dryRun, report, templates } = ctx;
 
-  // 1. The handoff file itself. Seeded only when absent — an existing one is
+  // 1. The crumb file itself. Seeded only when absent — an existing one is
   //    live state and overwriting it would defeat the entire tool.
-  const handoffPath = path.join(root, HANDOFF_FILE);
-  const seed = f.readRequired(path.join(templates, 'last_handoff.md'));
+  const crumbPath = path.join(root, CRUMB_FILE);
+  const seed = f.readRequired(path.join(templates, 'last_crumb.md'));
   report(
-    HANDOFF_FILE,
-    f.writeIfAbsent(handoffPath, seed, { dryRun }),
-    f.exists(handoffPath) ? 'already present, left alone' : null
+    CRUMB_FILE,
+    f.writeIfAbsent(crumbPath, seed, { dryRun }),
+    f.exists(crumbPath) ? 'already present, left alone' : null
   );
 
   // 2. Keep it out of git. It's per-developer working state, not shared truth.
@@ -45,7 +45,7 @@ function install(ctx) {
       f.ensureIgnoreLine(
         path.join(root, '.gitignore'),
         IGNORE_ENTRY,
-        'handoffkit (local working context, not shared state)',
+        'repocrumb (local working context, not shared state)',
         { dryRun }
       )
     );
@@ -61,4 +61,4 @@ function install(ctx) {
   );
 }
 
-module.exports = { install, HANDOFF_FILE, BLOCK_ID };
+module.exports = { install, CRUMB_FILE, BLOCK_ID };

@@ -1,11 +1,11 @@
 {
-  "name": "handoffkit",
+  "name": "repocrumb",
   "version": "0.1.0",
-  "description": "Portable agent handoff. Keeps a short last_handoff.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, tools, and plan changes. Start a fresh conversation instead of letting a long one compact.",
+  "description": "Leaves a breadcrumb in the repo for the next agent. Keeps a short last_crumb.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, tools, and plan changes. Start a fresh conversation instead of letting a long one compact.",
   "keywords": [
     "ai",
     "agent",
-    "handoff",
+    "breadcrumb",
     "context",
     "claude",
     "claude-code",
@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "bin": {
-    "handoffkit": "bin/handoffkit.js"
+    "repocrumb": "bin/repocrumb.js"
   },
   "main": "src/install.js",
   "files": [
@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1hemantbhatt/handoffkit.git"
+    "url": "git+https://github.com/1hemantbhatt/repocrumb.git"
   },
   "bugs": {
-    "url": "https://github.com/1hemantbhatt/handoffkit/issues"
+    "url": "https://github.com/1hemantbhatt/repocrumb/issues"
   },
-  "homepage": "https://github.com/1hemantbhatt/handoffkit#readme"
+  "homepage": "https://github.com/1hemantbhatt/repocrumb#readme"
 }

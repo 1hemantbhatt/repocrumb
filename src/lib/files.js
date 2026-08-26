@@ -21,7 +21,7 @@ const exists = (p) => fs.existsSync(p);
 function readRequired(absPath) {
   const content = read(absPath);
   if (content === null) {
-    throw new Error(`missing package template: ${absPath}\nThis is a broken handoffkit install — try reinstalling.`);
+    throw new Error(`missing package template: ${absPath}\nThis is a broken repocrumb install — try reinstalling.`);
   }
   return content;
 }
@@ -44,7 +44,7 @@ function write(absPath, content, { dryRun = false } = {}) {
 
 /**
  * Write only when the file does not already exist. For anything the user owns
- * and edits — last_handoff.md is live state, not a template, and clobbering it
+ * and edits — last_crumb.md is live state, not a template, and clobbering it
  * would destroy the very thing this tool exists to preserve.
  */
 function writeIfAbsent(absPath, content, { dryRun = false } = {}) {
