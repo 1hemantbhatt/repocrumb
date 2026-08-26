@@ -156,7 +156,5 @@ MIT
 
 ---
 
-Not affiliated with, endorsed by, or sponsored by Anthropic, Anysphere, or
-OpenAI. Claude and Claude Code are trademarks of Anthropic; Cursor is a
-trademark of Anysphere; Codex is a trademark of OpenAI. Product names are used
-here only to describe what this tool works with.
+Not affiliated with or endorsed by Anthropic. Claude and Claude Code are
+trademarks of their respective owners.
