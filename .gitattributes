@@ -8,3 +8,8 @@
 
 # Templates are copied verbatim into user projects; keep them stable.
 templates/** text eol=lf
+
+# Binary assets must never be touched by the eol rules above. Git's auto
+# detection already handles this, but the README banner is not worth risking to
+# a heuristic.
+*.png binary

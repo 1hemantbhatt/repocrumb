@@ -1,3 +1,7 @@
+![handoffkit — Agent A auto-saves a short last_handoff.md into your repo each
+turn; Agent B loads it in a new session and continues with the progress,
+decisions, and next steps intact.](docs/banner.png)
+
 # handoffkit
 
 Portable agent handoff. Keeps a short `last_handoff.md` in your repo so any AI
