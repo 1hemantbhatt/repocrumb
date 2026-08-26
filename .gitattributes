@@ -1,0 +1,10 @@
+# Normalize to LF in the repo.
+* text=auto eol=lf
+
+# Shell scripts must be LF even when checked out on Windows. A CRLF hook fails
+# with "\r: command not found" the moment bash runs it, and since this script is
+# shipped to users, a Windows contributor could otherwise publish a broken one.
+*.sh text eol=lf
+
+# Templates are copied verbatim into user projects; keep them stable.
+templates/** text eol=lf
