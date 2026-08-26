@@ -1,0 +1,43 @@
+{
+  "name": "handoffkit",
+  "version": "0.1.0",
+  "description": "Portable agent handoff. Keeps a short last_handoff.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, subscriptions, and providers.",
+  "keywords": [
+    "ai",
+    "agent",
+    "handoff",
+    "context",
+    "claude",
+    "claude-code",
+    "cursor",
+    "codex",
+    "llm",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "bin": {
+    "handoffkit": "bin/handoffkit.js"
+  },
+  "main": "src/install.js",
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/smoke.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1hemantbhatt/handoffkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1hemantbhatt/handoffkit/issues"
+  },
+  "homepage": "https://github.com/1hemantbhatt/handoffkit#readme"
+}
