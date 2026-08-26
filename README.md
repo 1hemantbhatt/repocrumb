@@ -29,6 +29,12 @@ long conversation fills its context window and gets compacted — the summary
 keeps the shape of the work and quietly drops the specifics. Nothing ended,
 nothing changed hands, and the agent still knows less than it did an hour ago.
 
+![Two ways context is lost. One: a session ends, the tool changes, or the
+plan changes — Agent A knows the codebase, the three approaches tried, and the
+rejected fix, but Agent B starts fresh with none of it. Two: a long
+conversation is compacted — the high-level shape survives while decisions,
+attempts, edge cases, and nuance are dropped.](docs/last_crumb_problem.png)
+
 ## The approach
 
 One plain markdown file at the root of your repo, `last_crumb.md`, holding a
