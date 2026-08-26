@@ -185,4 +185,121 @@ check('a non-git directory still gets the agent files', () => {
   assert.ok(!has(d, '.gitignore'), 'gitignore written outside a repo');
 });
 
+/**
+ * Hook decision tests. The installer tests above only prove the file lands;
+ * these prove it decides correctly, which is where the real bugs live.
+ *
+ * Each builds a throwaway git repo, runs the hook with a synthetic payload,
+ * and asserts on stdout: empty means "let the turn end", JSON means "nudge".
+ */
+const HOOK = path.join(__dirname, '..', 'templates', 'claude', 'hooks', 'repocrumb-reminder.sh');
+
+const gitRepo = () => {
+  const d = fs.realpathSync(tmp());
+  const git = (...a) => execFileSync('git', ['-C', d, ...a], { stdio: 'pipe' });
+  git('init', '-q');
+  git('config', 'user.email', 't@t');
+  git('config', 'user.name', 't');
+  fs.writeFileSync(path.join(d, 'work.txt'), 'hi\n');
+  git('add', '-A');
+  git('commit', '-qm', 'init');
+  return d;
+};
+
+// Run the hook the way Claude Code does: payload on stdin, project dir in env.
+const hook = (d, payload = {}) =>
+  execFileSync('bash', [HOOK], {
+    encoding: 'utf8',
+    input: JSON.stringify({ hook_event_name: 'Stop', stop_hook_active: false, ...payload }),
+    env: { ...process.env, CLAUDE_PROJECT_DIR: d },
+  }).trim();
+
+// Make the crumb look older than the work, without sleeping.
+const ageCrumb = (d, seconds) => {
+  const t = Date.now() / 1000 - seconds;
+  fs.utimesSync(path.join(d, 'last_crumb.md'), t, t);
+};
+
+// Model "a save just happened". Needed because install writes the seed crumb
+// FIRST and .gitignore/AGENTS.md/.claude after it, so if the install straddles
+// a second boundary those files are legitimately newer and the hook nudges.
+// That is correct behaviour on a fresh install; it just isn't what these
+// cases are testing.
+const freshenCrumb = (d) => {
+  const t = Date.now() / 1000 + 1;
+  fs.utimesSync(path.join(d, 'last_crumb.md'), t, t);
+};
+
+check('hook stays quiet when nothing changed since the save', () => {
+  const d = gitRepo();
+  run(d);
+  freshenCrumb(d);
+  assert.strictEqual(hook(d), '', 'nudged with no new work');
+});
+
+check('hook nudges when tracked work is newer than the crumb', () => {
+  const d = gitRepo();
+  run(d);
+  ageCrumb(d, 60);
+  fs.appendFileSync(path.join(d, 'work.txt'), 'edit\n');
+  const out = hook(d);
+  assert.ok(out.includes('"decision":"block"'), `expected a block, got: ${out}`);
+  assert.ok(out.includes('last_crumb.md'), 'reason should name the crumb');
+  assert.ok(out.includes('repocrumb-save'), 'reason should name the save skill');
+});
+
+// The regression this suite exists for. A nudge the model ignored used to arm
+// a 10-minute cooldown, so the NEXT turn ending stale got no nudge at all.
+check('an ignored nudge does not mute the next turn', () => {
+  const d = gitRepo();
+  run(d);
+  ageCrumb(d, 60);
+  fs.appendFileSync(path.join(d, 'work.txt'), 'edit\n');
+
+  assert.ok(hook(d).includes('"decision":"block"'), 'first nudge missing');
+  // Model ignored it: crumb still stale, more work landed, new turn.
+  fs.appendFileSync(path.join(d, 'work.txt'), 'more\n');
+  assert.ok(hook(d).includes('"decision":"block"'), 'second turn was muted');
+});
+
+// The loop guard that replaced the cooldown: never block twice inside one
+// stop cycle, however stale the crumb is.
+check('hook never blocks twice within one stop cycle', () => {
+  const d = gitRepo();
+  run(d);
+  ageCrumb(d, 60);
+  fs.appendFileSync(path.join(d, 'work.txt'), 'edit\n');
+
+  assert.ok(hook(d).includes('"decision":"block"'), 'first nudge missing');
+  assert.strictEqual(hook(d, { stop_hook_active: true }), '', 'blocked inside its own continuation');
+});
+
+check('hook tolerates whitespace in the stop_hook_active field', () => {
+  const d = gitRepo();
+  run(d);
+  ageCrumb(d, 60);
+  fs.appendFileSync(path.join(d, 'work.txt'), 'edit\n');
+  const out = execFileSync('bash', [HOOK], {
+    encoding: 'utf8',
+    input: '{ "hook_event_name": "Stop", "stop_hook_active" : true }',
+    env: { ...process.env, CLAUDE_PROJECT_DIR: d },
+  }).trim();
+  assert.strictEqual(out, '', 'pretty-printed payload was not recognised');
+});
+
+check('hook survives an empty payload without looping', () => {
+  const d = gitRepo();
+  run(d);
+  freshenCrumb(d);
+  assert.strictEqual(
+    execFileSync('bash', [HOOK], {
+      encoding: 'utf8',
+      input: '',
+      env: { ...process.env, CLAUDE_PROJECT_DIR: d },
+    }).trim(),
+    '',
+    'no stdin should still be safe'
+  );
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', with failures' : ''}\n`);

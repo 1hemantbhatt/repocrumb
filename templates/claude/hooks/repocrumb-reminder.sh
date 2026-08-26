@@ -5,18 +5,29 @@
 # Blocks the stop (which sends the model back for one more step) only when the
 # crumb file looks stale. Two guards keep this from becoming a loop:
 #   - a freshness window: if the file was touched during this turn, we're done
-#   - a cooldown marker: we block at most once per COOLDOWN seconds
-# Deliberately no jq dependency; stdin is drained and ignored.
+#   - stop_hook_active: we block at most once per stop cycle (see below)
+# Deliberately no jq dependency; the one field we need is matched textually.
 
 set -u
 
 FRESH=900      # backstop: crumb counts as current if touched this recently
-COOLDOWN=600   # never block again within this many seconds of the last block
 
-cat >/dev/null 2>&1 || true   # drain hook stdin
+INPUT=$(cat 2>/dev/null || true)   # hook payload on stdin
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 CRUMB="$ROOT/last_crumb.md"
+
+# Claude Code sets stop_hook_active=true when this turn is only still running
+# because a Stop hook blocked it. Blocking again from inside that continuation
+# is the one thing that can trap the turn in a loop, so we stop there — at most
+# one nudge per stop cycle, and the model is free to end the turn either way.
+#
+# This replaces an earlier wall-clock cooldown. A timer could not tell "I just
+# nudged, don't nudge again" apart from "a different turn ended stale ten
+# minutes later", so an ignored nudge muted every genuine one after it.
+if printf '%s' "$INPUT" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*true'; then
+  exit 0
+fi
 
 # Modification time in epoch seconds. GNU stat (Linux, Git Bash) and BSD stat
 # (macOS) spell this differently, so try both and validate we got digits.
@@ -28,24 +39,10 @@ mtime_of() {
   printf '%s' "$t"
 }
 
-# Cooldown marker goes in the shared git dir. --git-common-dir resolves to the
-# real .git even from a linked worktree, where .git is a file and not writable
-# as a directory.
-#
-# The no-git fallback must not be a fixed name in a world-writable directory:
-# on a shared machine anyone could pre-create it, and we both read it back and
-# write through it. Use a private per-user cache instead, keyed by repo path so
-# two projects don't share one cooldown.
+# --git-common-dir resolves to the real .git even from a linked worktree, where
+# .git is a file rather than a directory. Empty means "not a repo", which the
+# staleness check below treats as "fall back to the clock".
 GITDIR=$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null || echo "")
-case "$GITDIR" in
-  '' )
-    CACHE="${XDG_CACHE_HOME:-${HOME:-$ROOT}/.cache}/repocrumb"
-    (umask 077 && mkdir -p "$CACHE") 2>/dev/null
-    MARKER="$CACHE/block-$(printf '%s' "$ROOT" | cksum | cut -d' ' -f1)"
-    ;;
-  /*|[A-Za-z]:* ) MARKER="$GITDIR/repocrumb-block" ;;
-  * ) MARKER="$ROOT/$GITDIR/repocrumb-block" ;;   # relative form
-esac
 
 now=$(date +%s)
 
@@ -86,32 +83,14 @@ if [ -n "$GITDIR" ] && [ "$mtime" -gt 0 ]; then
     fi
   done < <(git -C "$ROOT" status --porcelain -z --untracked-files=all 2>/dev/null)
   if [ "$work_is_newer" -eq 0 ]; then
-    rm -f "$MARKER" 2>/dev/null
     exit 0
   fi
 fi
 
 # Backstop for repos where git is unavailable or nothing is tracked yet.
 if [ $((now - mtime)) -lt "$FRESH" ] && [ "$work_is_newer" -eq 0 ]; then
-  rm -f "$MARKER" 2>/dev/null
   exit 0
 fi
-
-# Validate before the arithmetic below. Shell arithmetic re-evaluates whatever
-# a variable holds, so an unchecked file read here would be a code-execution
-# path if anything ever wrote something other than digits into the marker.
-last=0
-if [ -f "$MARKER" ]; then
-  last=$(cat "$MARKER" 2>/dev/null || echo 0)
-  case "$last" in ''|*[!0-9]*) last=0 ;; esac
-fi
-
-# Already nudged recently. Stay quiet rather than trap the turn in a loop.
-if [ $((now - last)) -lt "$COOLDOWN" ]; then
-  exit 0
-fi
-
-echo "$now" > "$MARKER" 2>/dev/null
 
 cat <<'JSON'
 {"decision":"block","reason":"last_crumb.md is stale. Use the repocrumb-save skill now to overwrite it with the current state and this conversation, then finish. Keep it under 100 lines. If this turn changed nothing worth recording, refresh the stamp and the Last conversation block only, then stop.","suppressOutput":true}

@@ -1,6 +1,6 @@
 {
   "name": "repocrumb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Leaves a breadcrumb in the repo for the next agent. Keeps a short last_crumb.md in your repo so any AI coding agent can pick up where the last one stopped — across sessions, tools, and plan changes. Start a fresh conversation instead of letting a long one compact.",
   "keywords": [
     "ai",

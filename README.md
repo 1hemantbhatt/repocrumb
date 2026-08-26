@@ -116,8 +116,15 @@ crumb.** If no file has changed since the last save, there's nothing to
 record, whatever the clock says.
 
 Two guards keep it from becoming a loop: a wall-clock backstop for repos without
-git, and a cooldown so it nudges at most once every ten minutes. Worst case it's
-mildly annoying; it can't trap you.
+git, and `stop_hook_active` — the flag Claude Code sets when a turn is only
+still running because a Stop hook blocked it. Seeing that, the hook stays quiet,
+so it nudges at most once per turn and can never trap you in a cycle.
+
+That flag matters more than it sounds. An earlier version used a ten-minute
+cooldown instead, which couldn't tell "I just nudged" apart from "a different
+turn ended stale a few minutes later" — so a single ignored nudge silenced
+every genuine one after it. The reminder was quietly unreliable exactly when
+it was needed most.
 
 The script is bash with no dependencies — no `jq` — and works on macOS,
 Linux, and Windows via Git Bash. It resolves the git directory with
