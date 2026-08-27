@@ -45,7 +45,10 @@ function run({ root }) {
   log.info('');
   log.info(verify.render(report));
 
-  return report.code === verify.UNUSABLE ? verify.UNUSABLE : 0;
+  // The same contract as `verify`: the crumb printed fine, but the exit code
+  // still reports how much of it applies, so hooks and scripts can branch on
+  // staleness without parsing the verdict.
+  return report.code;
 }
 
 module.exports = { run };

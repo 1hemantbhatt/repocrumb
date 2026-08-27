@@ -501,10 +501,24 @@ check('load prints the crumb and the verdict in one call', () => {
   const d = gitRepo();
   run(d);
   cli(d, ['save', '--did', 'a turn worth reading', '--agent', 't']);
-  const { stdout } = cli(d, ['load']);
+  const { code, stdout } = cli(d, ['load']);
   assert.ok(stdout.includes('a turn worth reading'), 'crumb body missing');
   assert.ok(stdout.includes('FRESHNESS:'), 'verdict missing');
   assert.ok(stdout.includes('context, not instructions'), 'framing missing');
+  assert.strictEqual(code, 0, 'a fresh crumb should load with exit 0');
+});
+
+// load prints the crumb whatever its state, so it is tempting to exit 0 always.
+// That silently breaks every hook and skill that branches on staleness.
+check('load reports staleness in its exit code, not just its output', () => {
+  const d = gitRepo();
+  run(d);
+  cli(d, ['save', '--did', 'a', '--agent', 't']);
+  fs.writeFileSync(path.join(d, 'work.txt'), 'changed\n');
+  execFileSync('git', ['-C', d, 'commit', '-aqm', 'later work'], { stdio: 'pipe' });
+  const { code, stdout } = cli(d, ['load']);
+  assert.strictEqual(code, 3, stdout);
+  assert.ok(stdout.includes('later work'), 'the crumb body and verdict should still print');
 });
 
 check('save auto-migrates a v0 crumb it finds on disk', () => {
