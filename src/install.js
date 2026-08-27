@@ -5,13 +5,17 @@ const fs = require('fs');
 const log = require('./lib/log');
 const universal = require('./targets/universal');
 const claude = require('./targets/claude');
+const codex = require('./targets/codex');
+const cursor = require('./targets/cursor');
 
 const TEMPLATES = path.join(__dirname, '..', 'templates');
 
-// Provider adapters. Each exposes install(ctx). Adding Cursor or Codex support
-// means adding a module here — nothing else in the CLI has to change.
+// Provider adapters. Each exposes install(ctx). Adding a new agent means
+// adding a module here — nothing else in the CLI has to change.
 const TARGETS = {
   claude: { label: 'Claude Code', mod: claude },
+  codex: { label: 'Codex', mod: codex },
+  cursor: { label: 'Cursor', mod: cursor },
 };
 
 function install({ root, dryRun = false, targets = ['claude'] } = {}) {
@@ -57,8 +61,12 @@ function install({ root, dryRun = false, targets = ['claude'] } = {}) {
   } else if (changed) {
     log.info(`  ${log.green('Done.')} ${counts.create} created, ${counts.update} updated.`);
     log.info('');
-    log.info(`  Restart your agent (or open ${log.cyan('/hooks')} once in Claude Code) so it`);
-    log.info('  picks up the new settings, then run ' + log.cyan('/repocrumb-load') + ' to start a session.');
+    if (targets.includes('claude')) {
+      log.info(`  Restart your agent (or open ${log.cyan('/hooks')} once in Claude Code) so it`);
+      log.info('  picks up the new settings, then run ' + log.cyan('/repocrumb-load') + ' to start a session.');
+    } else {
+      log.info(`  Start a session with ${log.cyan('npx repocrumb load')}.`);
+    }
   } else {
     log.info('  Already up to date.');
   }
