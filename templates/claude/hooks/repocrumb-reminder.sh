@@ -93,7 +93,7 @@ if [ $((now - mtime)) -lt "$FRESH" ] && [ "$work_is_newer" -eq 0 ]; then
 fi
 
 cat <<'JSON'
-{"decision":"block","reason":"last_crumb.md is stale. Use the repocrumb-save skill now to overwrite it with the current state and this conversation, then finish. Keep it under 100 lines. If this turn changed nothing worth recording, refresh the stamp and the Last conversation block only, then stop.","suppressOutput":true}
+{"decision":"block","reason":"last_crumb.md is stale. Use the repocrumb-save skill now, then finish. For a normal turn that is one command: npx repocrumb save --did \"<what this turn did>\" --next \"<the next action>\" --agent <your model id>. Do not edit last_crumb.md by hand and never type a commit sha into it - the CLI computes every fact from git. Pipe a replacement durable region with --state - only if the objective, decisions or key files actually changed.","suppressOutput":true}
 JSON
 
 exit 0

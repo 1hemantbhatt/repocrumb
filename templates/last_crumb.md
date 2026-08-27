@@ -1,45 +1,34 @@
+---
+spec: crumb/1
+updated: never
+agent: none
+branch: none
+head: none
+tests: unknown
+---
+
 # Crumb
 
-Updated: never | Agent: none | Branch: — | HEAD: —
-
 > Snapshot of current state, for an incoming agent with no prior context.
-> Overwritten every save. Reflects one conversation only.
+> Durable sections are rewritten only when they change; the journal is appended to.
 >
 > This is the seed file. No conversation has been recorded yet — the first
-> `repocrumb-save` replaces everything below.
-
-## Project
-
-_Not yet described._
+> `repocrumb save` stamps the frontmatter and starts the journal.
 
 ## Objective
-
-_Not yet set._
+Nothing recorded yet.
 
 ## State
-
-**Done:** nothing recorded yet
-**Doing:** nothing recorded yet
+**Doing:** nothing yet
 **Blocked:** none
+**Next:** unknown
 
 ## Decisions
 
-_None recorded._
-
 ## Key files
-
-_None recorded._
 
 ## Gotchas
 
-_None recorded._
-
 ## Environment
 
-_Not yet recorded._
-
-## Last conversation
-
-**Asked:** —
-**Did:** repocrumb was installed. This file is the seed.
-**Result:** Waiting for the first real conversation.
+## Journal
